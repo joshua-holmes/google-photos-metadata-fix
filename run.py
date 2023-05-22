@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, json
 
 import filetype
 from exif import Image
@@ -9,6 +9,7 @@ def print_help_and_exit(error_msg=None):
     print("Usage:")
     print("$ python3 run.py <path>")
     print("<path> should be the directory that contains images and json files.")
+    print()
     sys.exit(1 if error_msg else 0)
 
 def process_files_in_dir(folder_path: str):
@@ -43,12 +44,13 @@ def apply_metadata(image_file: str, json_file: str):
     pass
 
 def main():
+    print(sys.argv)
     if len(sys.argv) < 2:
         print_help_and_exit("Not enough arguments")
-    elif sys.argv[2] in ["--help", "-h"]:
+    elif sys.argv[1] in ["--help", "-h"]:
         print_help_and_exit()
 
-    folder_path = sys.argv[2]
+    folder_path = sys.argv[1]
     if os.path.exists(folder_path):
         print_help_and_exit(f"Directory: {folder_path}\n does not exist.")
     elif os.path.isfile(folder_path):
