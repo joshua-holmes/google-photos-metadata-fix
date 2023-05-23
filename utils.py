@@ -17,8 +17,6 @@ def __file_filter(fname: str) -> bool:
     is_image = filetype.is_image(fname)
     is_video = filetype.is_video(fname)
     is_json = fname[-5:].lower() == ".json"
-    # print("HEEERE", fname, is_image)
-    return True
     return is_file and (is_image or is_video or is_json)
 
 
