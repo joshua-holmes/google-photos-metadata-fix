@@ -8,6 +8,8 @@ This is because the photos Google exports does not come with the correct metadat
 
 This Python script inserts the correct metadata into each photo from the corresponding JSON file, then cleans up all the JSON files.
 
+This script also converts all HEIC photos into JPEG photos, which is a more common file format for pictures. HEIC photos are an Apple-only file format for photos that will not be viewable on all devices. Any device will be able to view JPEG photos.
+
 This project was inspired by [MetadataFixer.com](https://metadatafixer.com/), which is a paid version of the same thing. I am unaffiliated and wanted a free alternative, so I wrote this script.
 
 ## Dependencies
