@@ -1,75 +1,74 @@
-import sys, os, json
+import sys, os
+from typing import List
 
-import filetype
-from exif import Image
-
-DIRNAME = os.path.dirname(__file__)
+import utils
 
 
 def print_help_and_exit(error_msg=None):
     if error_msg:
-        print(error_msg, "\n")
+        print("ERROR!")
+        print(error_msg)
+        print()
     print("Usage:")
-    print("$ python3 run.py <path>")
+    print("$ python3 run.py [--view | --preview] <path>")
     print("<path> should be the directory that contains images and json files.")
+    print()
+    print("Example usage for fixing metadata:")
+    print("$ python3 run.py my-google-takeout-path/")
+    print()
+    print("Example usage for viewing current metadata:")
+    print("$ python3 run.py --view my-google-takeout-path/")
+    print()
+    print("Example usage for previewing changes in metadata without modifying any files:")
+    print("$ python3 run.py --preview my-google-takeout-path/")
     print()
     sys.exit(1 if error_msg else 0)
 
 
-def file_filter(fname):
-    is_file = os.path.isfile(fname)
-    is_image = filetype.is_image(fname)
-    is_video = filetype.is_video(fname)
-    is_json = fname[-5:] == ".json"
-    return is_file and (is_image or is_video or is_json)
+def print_success_message():
+    print("Success! Metadata applied! Nothing else needs to be done.")
+    print()
+    print("Use the following example if you want to see the new metadata:")
+    print("$ python3 run.py --view <path>")
+    print()
 
 
-def process_files_in_dir(folder_path: str):
-    files = [f"{folder_path}/{f}" for f in os.listdir(folder_path)]
-    files = list(filter(file_filter, files))
-    file_pairs = {}
-
-    for fname in files:
-        basename = os.path.basename(fname)
-        prefix = ".".join(basename.split(".")[:-1])
-        pair = file_pairs.setdefault(prefix, {})
-
-        if fname[-5:] == ".json":
-            pair["json"] = fname
-        else:
-            if "image" in pair:
-                message = f"""Oops! Already found image with same prefix name.
-    {fname}
-    {pair["image"]}"""
-                raise Exception(message)
-            pair["image"] = fname
-
-    for prefix in file_pairs:
-        pair = file_pairs[prefix]
-        if len(pair) < 2:
-            print(f"Cannot find pair for {prefix}. Skipping...")
-            continue
-        
-        apply_metadata(pair["image"], pair["json"])
-
-
-def apply_metadata(image_file: str, json_file: str):
-    pass
-
-
-def main():
-    if len(sys.argv) < 2:
+def set_attributes(args: List[str]) -> str:
+    if len(args) < 2:
         print_help_and_exit("Not enough arguments")
-    elif sys.argv[1] in ["--help", "-h"]:
-        print_help_and_exit()
+    elif len(args) > 3:
+        print_help_and_exit("Too many arguments")
 
-    folder_path = f"{DIRNAME}/{sys.argv[1]}"
+    folder_path = None
+    for arg in args[1:]:
+        if arg in ["--help", "-h"]:
+            print_help_and_exit()
+        elif arg == "--view":
+            utils.VIEW_ONLY = True
+        elif arg == "--preview":
+            utils.PREVIEW_ONLY = True
+        elif arg[0] == "-":
+            print_help_and_exit(f"Unknown argument: {arg}")
+        elif arg[0] == "/":
+            folder_path = arg
+        else:
+            folder_path = f"{os.getcwd()}/{arg}"
+
+    if not folder_path:
+        print_help_and_exit("Did not provide <path>")
+
     if not os.path.exists(folder_path):
         print_help_and_exit(f"Directory: {folder_path}\n does not exist.")
     elif os.path.isfile(folder_path):
         print_help_and_exit(f"Directory: {folder_path}\n is a file, not a directory.")
-    
-    process_files_in_dir(folder_path)
+
+    return folder_path
+
+def main():
+    folder_path = set_attributes(sys.argv)
+    utils.process_files_in_dir(folder_path)
+    if not (utils.PREVIEW_ONLY or utils.VIEW_ONLY):
+        print_success_message()
 
 
 if __name__ == "__main__":
