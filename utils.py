@@ -106,20 +106,24 @@ def process_files_in_dir(folder_path: str):
             pair["json"] = fname
         else:
             if "image" in pair:
-                message = f"""Oops! Already found image with same prefix name.
-    {fname}
-    {pair["image"]}"""
+                _, prefix1, ext1 = get_file_details(fname)
+                _, prefix2, ext2 = get_file_details(pair["image"])
+                message = f"""
+Oops! Found multiple images with the same prefix.
+    {prefix1 + ext1}
+    {prefix2 + ext2}
+                """
                 raise Exception(message)
             pair["image"] = fname
 
     for prefix in progressbar(file_pairs, redirect_stdout=True):
         pair = file_pairs[prefix]
-        if len(pair) < 2:
-            print(f"Cannot find pair for {prefix}. Skipping...")
-            continue
         if VIEW_ONLY:
             print_metadata(pair["image"])
         else:
+            if len(pair) < 2:
+                print(f"Cannot find pair for {prefix}. Skipping...")
+                continue
             __apply_metadata(pair["image"], pair["json"])
 
 

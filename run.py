@@ -33,6 +33,15 @@ def print_success_message():
     print()
 
 
+def format_folder_path(path):
+    returned_path = path
+    if path[0] != "/":
+        returned_path = f"{os.getcwd()}/{returned_path}"
+    if path[-1] == "/":
+        returned_path = returned_path[:-1]
+    return returned_path
+
+
 def set_attributes(args: List[str]) -> str:
     if len(args) < 2:
         print_help_and_exit("Not enough arguments")
@@ -49,10 +58,8 @@ def set_attributes(args: List[str]) -> str:
             utils.PREVIEW_ONLY = True
         elif arg[0] == "-":
             print_help_and_exit(f"Unknown argument: {arg}")
-        elif arg[0] == "/":
-            folder_path = arg
         else:
-            folder_path = f"{os.getcwd()}/{arg}"
+            folder_path = format_folder_path(arg)
 
     if not folder_path:
         print_help_and_exit("Did not provide <path>")
