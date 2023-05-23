@@ -20,14 +20,18 @@ def __file_filter(fname: str) -> bool:
     return is_file and (is_image or is_video or is_json)
 
 
+def __is_heic(img_fname: str) -> bool:
+    with open(img_fname, "rb") as f:
+        img_fmt = whatimage.identify_image(f.read())
+    return img_fmt == "heic"
+
+
+
 def __apply_metadata(img_fname: str, json_fname: str):
     with open(json_fname) as json_f:
         md = json.load(json_f)
 
-    with open(img_fname, "rb") as img_f:
-        img_fmt = whatimage.identify_image(img_f.read())
-
-    if img_fmt == "heic":
+    if __is_heic(img_fname):
         jpg_fname = __convert_heic_to_jpg(img_fname)
         img_fname = jpg_fname
 
@@ -81,10 +85,20 @@ def get_file_details(full_name: str) -> Tuple[str, str, str]:
 
 
 def print_metadata(img_fname: str, image = None):
+    _, prefix, ext = get_file_details(img_fname)
+    if __is_heic(img_fname):
+        message = f"""
+Cannot view heic metadata for file:
+    {prefix + ext}
+Run the script without the --view flag to automatically convert to jpg and
+apply metadata to all files.
+Skipping...
+        """
+        print(message)
+        return
     if type(image) is not ImageExif:
         with open(img_fname, "rb") as img_f:
             image = ImageExif(img_f)
-    _, prefix, ext = get_file_details(img_fname)
     all_attrs = image.get_all()
     print("NAME:", prefix + ext)
     print("# OF FIELDS:", len(all_attrs))
