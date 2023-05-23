@@ -58,6 +58,7 @@ def __apply_metadata(img_fname: str, json_fname: str):
     else:
         with open(img_fname, "wb") as img_f:
             img_f.write(image.get_file())
+        os.remove(json_fname)
 
 
 def __convert_heic_to_jpg(heic_fname: str) -> str:
