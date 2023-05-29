@@ -138,7 +138,7 @@ def __get_key(fname: str) -> str:
     return key
 
 # Entry point for this script
-def process_files_in_dir(path: str):
+def process_files_in_dir(path: str) -> int:
     file_pairs = {}
     files = __get_files(path)
 
@@ -152,6 +152,7 @@ def process_files_in_dir(path: str):
             images = pair.setdefault("images", set())
             images.add(fname)
 
+    imgs_modified = 0
     for key in progressbar(file_pairs, redirect_stdout=True):
         pair = file_pairs[key]
         if VIEW_ONLY:
@@ -164,6 +165,8 @@ def process_files_in_dir(path: str):
                 continue
             for img in pair["images"]:
                 __apply_metadata(img, pair["json"])
+                imgs_modified += 1
+    return imgs_modified
 
 
 if __name__ == "__main__":

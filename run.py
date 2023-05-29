@@ -25,8 +25,9 @@ def print_help_and_exit(error_msg=None):
     sys.exit(1 if error_msg else 0)
 
 
-def print_success_message():
+def print_success_message(imgs_modified: str):
     print("Success! Metadata applied! Nothing else needs to be done.")
+    print(f"{imgs_modified} images written to")
     print()
     print("Use the following example if you want to see the new metadata:")
     print("$ python3 run.py --view <path>")
@@ -71,9 +72,9 @@ def set_attributes(args: List[str]) -> str:
 
 def main():
     path = set_attributes(sys.argv)
-    utils.process_files_in_dir(path)
+    imgs_modified = utils.process_files_in_dir(path)
     if not (utils.PREVIEW_ONLY or utils.VIEW_ONLY):
-        print_success_message()
+        print_success_message(imgs_modified)
 
 
 if __name__ == "__main__":
