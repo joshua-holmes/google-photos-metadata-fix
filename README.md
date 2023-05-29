@@ -1,5 +1,7 @@
 # Google Photos Metadata Fix
 
+This project has no affiliation with Google and is not endorsed by them. This is my own personal project that I made to solve a problem I had with Google Photos.
+
 ## What is this?
 
 Are your photos out of order when you export them from Google Photos using Google Takeout?
