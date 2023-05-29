@@ -1,5 +1,6 @@
 import os, json
-from typing import Tuple
+from os.path import isdir
+from typing import Tuple, List
 
 import filetype, whatimage
 from PIL import Image as ImagePIL
@@ -51,8 +52,12 @@ def __apply_metadata(img_fname: str, json_fname: str):
     latitude = geo_data.get("latitude")
     longitude = geo_data.get("longitude")
     if latitude and longitude:
-        image.gps_latitude = latitude
-        image.gps_longitude = longitude
+        try:
+            image.gps_latitude = latitude
+            image.gps_longitude = longitude
+        except AssertionError:
+            # There's a bug with exif that throws an error here sometimes
+            pass
         altitude = geo_data.get("altitude")
         if altitude:
             image.gps_altitude = altitude
@@ -87,13 +92,12 @@ def get_file_details(full_name: str) -> Tuple[str, str, str]:
 def print_metadata(img_fname: str, image = None):
     _, prefix, ext = get_file_details(img_fname)
     if __is_heic(img_fname):
-        message = f"""
-Cannot view heic metadata for file:
+        message = f"""Cannot view heic metadata for file:
     {prefix + ext}
 Run the script without the --view flag to automatically convert to jpg and
 apply metadata to all files.
 Skipping...
-        """
+"""
         print(message)
         return
     if type(image) is not ImageExif:
@@ -106,40 +110,55 @@ Skipping...
         print(f"{attr}: {image.get(attr)}")
     print()
 
+def __get_files(path: str) -> List[str]:
+    files = [f"{path}/{f}" for f in os.listdir(path)]
+    files = list(filter(__file_filter, files))
+    return files
+
+def __get_key(fname: str) -> str:
+    # -- Assumes this structure --
+    # Image:
+    #   filename1.HEIC
+    # Json:
+    #   filename1.HEIC.json
+    # So 'key' should be:
+    #   filename1
+    _, prefix, ext = get_file_details(fname)
+    if ext == ".json":
+        key = os.path.splitext(prefix)[0]
+    elif "-edited" in prefix:
+        key = prefix.split("-edited")[0]
+    else:
+        key = prefix
+    return key
 
 # Entry point for this script
-def process_files_in_dir(folder_path: str):
-    files = [f"{folder_path}/{f}" for f in os.listdir(folder_path)]
-    files = list(filter(__file_filter, files))
+def process_files_in_dir(path: str):
     file_pairs = {}
+    files = __get_files(path)
 
     for fname in files:
-        prefix = get_file_details(fname)[1]
-        pair = file_pairs.setdefault(prefix, {})
+        key = __get_key(fname)
+        pair = file_pairs.setdefault(key, {})
 
         if fname[-5:].lower() == ".json":
             pair["json"] = fname
         else:
-            if "image" in pair:
-                _, prefix1, ext1 = get_file_details(fname)
-                _, prefix2, ext2 = get_file_details(pair["image"])
-                message = f"""
-Oops! Found multiple images with the same prefix.
-    {prefix1 + ext1}
-    {prefix2 + ext2}
-                """
-                raise Exception(message)
-            pair["image"] = fname
+            images = pair.setdefault("images", set())
+            images.add(fname)
 
-    for prefix in progressbar(file_pairs, redirect_stdout=True):
-        pair = file_pairs[prefix]
+    for key in progressbar(file_pairs, redirect_stdout=True):
+        pair = file_pairs[key]
         if VIEW_ONLY:
-            print_metadata(pair["image"])
+            if "images" in pair:
+                for img in pair["images"]:
+                    print_metadata(img)
         else:
             if len(pair) < 2:
-                print(f"Cannot find pair for {prefix}. Skipping...")
+                print(f"Cannot find pair for {key}. Skipping...")
                 continue
-            __apply_metadata(pair["image"], pair["json"])
+            for img in pair["images"]:
+                __apply_metadata(img, pair["json"])
 
 
 if __name__ == "__main__":
