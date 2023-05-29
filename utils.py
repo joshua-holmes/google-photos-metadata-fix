@@ -1,17 +1,21 @@
-import os, json
+import os, json, platform, time
 from os.path import isdir
 from typing import Optional, Tuple, List
+from datetime import datetime
+from dateutil import parser
 
-import filetype, whatimage
+import filetype, whatimage, filedate
 from PIL import Image as ImagePIL
 from exif import Image as ImageExif
 from pillow_heif import register_heif_opener
 from unidecode import unidecode
 from progressbar import progressbar
+from win32_setctime import setctime
 
 VIEW_ONLY = False
 PREVIEW_ONLY = False
 FIX_FILE_EXTENSIONS = False
+CONVERT_HEIC_TO_JPG = False
 
 
 def __print_heic_warning(fname):
@@ -38,59 +42,17 @@ def __is_heic(img_fname: str) -> bool:
     return img_fmt == "heic"
 
 
-def __apply_metadata(img_fname: str, json_fname: str):
-    with open(json_fname) as json_f:
-        md = json.load(json_f)
-
-    if __is_heic(img_fname):
-        if PREVIEW_ONLY:
-            __print_heic_warning(os.path.basename(img_fname))
-            return
-        else:
-            img_fname = __convert_heic_to_jpg(img_fname)
-
-    with open(img_fname, "rb") as img_f:
-        image = ImageExif(img_f)
-
-    description = md.get("description")
-    if description:
-        image.image_description = unidecode(description)
-
-    time = md.get("photoTakenTime", md.get("creationTime", {}))
-    time_formatted = time.get("formatted")
-    if time_formatted:
-        image.datetime = unidecode(time_formatted)
-
-    geo_data = md.get("geoData", md.get("geoDataExif", {}))
-    latitude = geo_data.get("latitude")
-    longitude = geo_data.get("longitude")
-    if latitude and longitude:
-        try:
-            image.gps_latitude = latitude
-            image.gps_longitude = longitude
-        except AssertionError:
-            # There's a bug with exif that throws an error here sometimes
-            pass
-        altitude = geo_data.get("altitude")
-        if altitude:
-            image.gps_altitude = altitude
-
-    if PREVIEW_ONLY:
-        print_metadata(img_fname, image)
-    else:
-        with open(img_fname, "wb") as img_f:
-            img_f.write(image.get_file())
-
-
-def __convert_heic_to_jpg(heic_fname: str) -> str:
-    dir_name, prefix, _ = get_file_details(heic_fname)
+def __convert_heic_to_jpg(img_fname: str) -> Optional[str]:
+    if not __is_heic(img_fname):
+        return None
+    dir_name, prefix, _ = get_file_details(img_fname)
     jpg_fname = f"{dir_name}/{prefix}.jpg"
 
     register_heif_opener()
-    with ImagePIL.open(heic_fname) as f:
+    with ImagePIL.open(img_fname) as f:
         f.save(jpg_fname)
 
-    os.remove(heic_fname)
+    os.remove(img_fname)
     return jpg_fname
 
 
@@ -163,6 +125,31 @@ def __get_key(fname: str) -> str:
         key = prefix
     return key
 
+
+def __apply_metadata(img_fname: str, json_fname: str):
+    with open(json_fname) as json_f:
+        md = json.load(json_f)
+
+
+    time = md.get("photoTakenTime", md.get("creationTime", {}))
+    time_num = int(time.get("timestamp"))
+    if not time_num:
+        return
+
+    # Set modified date
+    os.utime(img_fname, (time_num, time_num))
+
+    # Set created date
+    if platform.uname().system == "Windows":
+        setctime(img_fname, time_num)
+    else:
+        fdate = filedate.File(img_fname)
+        modified_date = fdate.get()["modified"].strftime("%Y.%m.%d %H:%M:%S")
+        fdate.set(
+            created=modified_date,
+        )
+
+
 # Entry point for this script
 def process_files_in_dir(path: str) -> int:
     file_pairs = {}
@@ -186,10 +173,15 @@ def process_files_in_dir(path: str) -> int:
                 for img in pair["images"]:
                     print_metadata(img)
         else:
-            if not PREVIEW_ONLY and FIX_FILE_EXTENSIONS and len(pair.get("images")):
+            can_fix_extensions = FIX_FILE_EXTENSIONS and len(pair.get("images"))
+            if CONVERT_HEIC_TO_JPG or can_fix_extensions:
                 new_set = set()
                 for img_fname in pair["images"]:
-                    new_img_fname = __fix_incorrect_extension(img_fname)
+                    new_img_fname = None
+                    if CONVERT_HEIC_TO_JPG:
+                        new_img_fname = __convert_heic_to_jpg(img_fname)
+                    elif can_fix_extensions:
+                        new_img_fname = __fix_incorrect_extension(img_fname)
                     new_set.add(new_img_fname or img_fname)
                 pair["images"] = new_set
             if len(pair) < 2:
@@ -198,8 +190,7 @@ def process_files_in_dir(path: str) -> int:
             for img in pair["images"]:
                 __apply_metadata(img, pair["json"])
                 imgs_modified += 1
-            if not PREVIEW_ONLY:
-                os.remove(pair["json"])
+            # os.remove(pair["json"])
     return imgs_modified
 
 
