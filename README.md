@@ -1,6 +1,10 @@
 # Google Photos Metadata Fix
 
+## Disclaimers
+
 This project has no affiliation with Google and is not endorsed by them. This is my own personal project that I made to solve a problem I had with Google Photos.
+
+This project is also currently in development and might contain bugs. You are welcome to try it though, it may work for you! If it does not and you are interested in helping out, please create an "issue" for this project here in GitHub if you find a bug.
 
 ## What is this?
 
