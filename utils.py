@@ -13,6 +13,16 @@ VIEW_ONLY = False
 PREVIEW_ONLY = False
 
 
+def __print_heic_warning(fname):
+    print(f"""Cannot view heic metadata for file:
+    {fname}
+Run the script without the --view flag to automatically convert to jpg and
+apply metadata to all files.
+Skipping...
+"""
+    )
+
+
 def __file_filter(fname: str) -> bool:
     is_file = os.path.isfile(fname)
     is_image = filetype.is_image(fname)
@@ -27,14 +37,16 @@ def __is_heic(img_fname: str) -> bool:
     return img_fmt == "heic"
 
 
-
 def __apply_metadata(img_fname: str, json_fname: str):
     with open(json_fname) as json_f:
         md = json.load(json_f)
 
     if __is_heic(img_fname):
-        jpg_fname = __convert_heic_to_jpg(img_fname)
-        img_fname = jpg_fname
+        if PREVIEW_ONLY:
+            __print_heic_warning(os.path.basename(img_fname))
+            return
+        else:
+            img_fname = __convert_heic_to_jpg(img_fname)
 
     with open(img_fname, "rb") as img_f:
         image = ImageExif(img_f)
@@ -92,13 +104,7 @@ def get_file_details(full_name: str) -> Tuple[str, str, str]:
 def print_metadata(img_fname: str, image = None):
     _, prefix, ext = get_file_details(img_fname)
     if __is_heic(img_fname):
-        message = f"""Cannot view heic metadata for file:
-    {prefix + ext}
-Run the script without the --view flag to automatically convert to jpg and
-apply metadata to all files.
-Skipping...
-"""
-        print(message)
+        __print_heic_warning(prefix + ext)
         return
     if type(image) is not ImageExif:
         with open(img_fname, "rb") as img_f:
