@@ -34,6 +34,21 @@ def print_success_message(imgs_modified: str):
     print()
 
 
+def ask_questions():
+    while True:
+        print("Do you want to rename file extensions if images have incorrect extensions?")
+        print("e.g. a JPG file is named \"myimage.HEIC\"")
+        print("y,yes,n,no")
+        answer = input()
+        print()
+        if answer.lower() in ["y", "yes"]:
+            utils.FIX_FILE_EXTENSIONS = True
+            break
+        elif answer.lower() in ["n", "no"]:
+            utils.FIX_FILE_EXTENSIONS = False
+            break
+
+
 def format_path(path):
     returned_path = path
     if path[0] != "/":
@@ -72,8 +87,12 @@ def set_attributes(args: List[str]) -> str:
 
 def main():
     path = set_attributes(sys.argv)
+    real_run = not (utils.PREVIEW_ONLY or utils.VIEW_ONLY)
+    if real_run:
+        ask_questions()
+
     imgs_modified = utils.process_files_in_dir(path)
-    if not (utils.PREVIEW_ONLY or utils.VIEW_ONLY):
+    if real_run:
         print_success_message(imgs_modified)
 
 

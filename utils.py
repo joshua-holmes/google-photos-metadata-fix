@@ -11,6 +11,7 @@ from progressbar import progressbar
 
 VIEW_ONLY = False
 PREVIEW_ONLY = False
+FIX_FILE_EXTENSIONS = False
 
 
 def __print_heic_warning(fname):
@@ -79,7 +80,12 @@ def __apply_metadata(img_fname: str, json_fname: str):
     else:
         with open(img_fname, "wb") as img_f:
             img_f.write(image.get_file())
-        os.remove(json_fname)
+        if FIX_FILE_EXTENSIONS:
+            new_fname = __fix_incorrect_extension(img_fname)
+            if new_fname:
+                _, new_prefix, new_ext = get_file_details(new_fname)
+                _, old_prefix, old_ext = get_file_details(img_fname)
+                print(f"Renamed: {old_prefix + old_ext} -> {new_prefix + new_ext}")
 
 
 def __convert_heic_to_jpg(heic_fname: str) -> str:
@@ -92,6 +98,17 @@ def __convert_heic_to_jpg(heic_fname: str) -> str:
 
     os.remove(heic_fname)
     return jpg_fname
+
+
+def __fix_incorrect_extension(img_fname) -> str:
+    with open(img_fname, "rb") as f:
+        img_fmt = whatimage.identify_image(f.read())
+    dirname, prefix, ext = get_file_details(img_fname)
+    if img_fmt and ext[1:].lower() != img_fmt.lower():
+        new_fname = dirname + "/" + prefix + "." + img_fmt.lower()
+        os.rename(img_fname, new_fname)
+        return new_fname
+    return ""
 
 
 def get_file_details(full_name: str) -> Tuple[str, str, str]:
@@ -172,6 +189,7 @@ def process_files_in_dir(path: str) -> int:
             for img in pair["images"]:
                 __apply_metadata(img, pair["json"])
                 imgs_modified += 1
+            os.remove(pair["json"])
     return imgs_modified
 
 
