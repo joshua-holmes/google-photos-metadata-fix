@@ -25,7 +25,7 @@ def print_help_and_exit(error_msg=None):
     sys.exit(1 if error_msg else 0)
 
 
-def print_success_message(imgs_modified: str):
+def print_success_message(imgs_modified: int):
     print("Success! Metadata applied! Nothing else needs to be done.")
     print(f"{imgs_modified} images written to")
     print()
@@ -36,8 +36,9 @@ def print_success_message(imgs_modified: str):
 
 def ask_questions():
     while True:
-        print("Do you want to rename file extensions if images have incorrect extensions?")
-        print("e.g. a JPG file is named \"myimage.HEIC\"")
+        print("Do you want to rename images if images have incorrect extensions?")
+        print("If you consent, it will rename selected images, even if metadata cannot be applied later in the process.")
+        print('e.g. a JPG file named "myimage.HEIC" would be renamed "myimage.jpg"')
         print("y,yes,n,no")
         answer = input()
         print()

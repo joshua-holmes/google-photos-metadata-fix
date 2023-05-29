@@ -1,6 +1,6 @@
 import os, json
 from os.path import isdir
-from typing import Tuple, List
+from typing import Optional, Tuple, List
 
 import filetype, whatimage
 from PIL import Image as ImagePIL
@@ -80,12 +80,6 @@ def __apply_metadata(img_fname: str, json_fname: str):
     else:
         with open(img_fname, "wb") as img_f:
             img_f.write(image.get_file())
-        if FIX_FILE_EXTENSIONS:
-            new_fname = __fix_incorrect_extension(img_fname)
-            if new_fname:
-                _, new_prefix, new_ext = get_file_details(new_fname)
-                _, old_prefix, old_ext = get_file_details(img_fname)
-                print(f"Renamed: {old_prefix + old_ext} -> {new_prefix + new_ext}")
 
 
 def __convert_heic_to_jpg(heic_fname: str) -> str:
@@ -100,15 +94,24 @@ def __convert_heic_to_jpg(heic_fname: str) -> str:
     return jpg_fname
 
 
-def __fix_incorrect_extension(img_fname) -> str:
+def __fix_incorrect_extension(img_fname) -> Optional[str]:
     with open(img_fname, "rb") as f:
         img_fmt = whatimage.identify_image(f.read())
     dirname, prefix, ext = get_file_details(img_fname)
+
+    if img_fmt and img_fmt.lower() == "jpeg":
+        img_fmt = "jpg"
+    if ext == ".jpeg":
+        ext = ".jpg"
+
     if img_fmt and ext[1:].lower() != img_fmt.lower():
         new_fname = dirname + "/" + prefix + "." + img_fmt.lower()
         os.rename(img_fname, new_fname)
+        _, new_prefix, new_ext = get_file_details(new_fname)
+        _, old_prefix, old_ext = get_file_details(img_fname)
+        print(f"Renamed: {old_prefix + old_ext} -> {new_prefix + new_ext}")
         return new_fname
-    return ""
+    return None
 
 
 def get_file_details(full_name: str) -> Tuple[str, str, str]:
@@ -183,13 +186,20 @@ def process_files_in_dir(path: str) -> int:
                 for img in pair["images"]:
                     print_metadata(img)
         else:
+            if not PREVIEW_ONLY and FIX_FILE_EXTENSIONS and len(pair.get("images")):
+                new_set = set()
+                for img_fname in pair["images"]:
+                    new_img_fname = __fix_incorrect_extension(img_fname)
+                    new_set.add(new_img_fname or img_fname)
+                pair["images"] = new_set
             if len(pair) < 2:
                 print(f"Cannot find pair for {key}. Skipping...")
                 continue
             for img in pair["images"]:
                 __apply_metadata(img, pair["json"])
                 imgs_modified += 1
-            os.remove(pair["json"])
+            if not PREVIEW_ONLY:
+                os.remove(pair["json"])
     return imgs_modified
 
 
