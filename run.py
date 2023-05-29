@@ -33,7 +33,7 @@ def print_success_message():
     print()
 
 
-def format_folder_path(path):
+def format_path(path):
     returned_path = path
     if path[0] != "/":
         returned_path = f"{os.getcwd()}/{returned_path}"
@@ -48,7 +48,7 @@ def set_attributes(args: List[str]) -> str:
     elif len(args) > 3:
         print_help_and_exit("Too many arguments")
 
-    folder_path = None
+    path = None
     for arg in args[1:]:
         if arg in ["--help", "-h"]:
             print_help_and_exit()
@@ -59,21 +59,19 @@ def set_attributes(args: List[str]) -> str:
         elif arg[0] == "-":
             print_help_and_exit(f"Unknown argument: {arg}")
         else:
-            folder_path = format_folder_path(arg)
+            path = format_path(arg)
 
-    if not folder_path:
+    if not path:
         print_help_and_exit("Did not provide <path>")
 
-    if not os.path.exists(folder_path):
-        print_help_and_exit(f"Directory: {folder_path}\n does not exist.")
-    elif os.path.isfile(folder_path):
-        print_help_and_exit(f"Directory: {folder_path}\n is a file, not a directory.")
+    if not os.path.exists(path):
+        print_help_and_exit(f"Directory: {path}\n does not exist.")
 
-    return folder_path
+    return path
 
 def main():
-    folder_path = set_attributes(sys.argv)
-    utils.process_files_in_dir(folder_path)
+    path = set_attributes(sys.argv)
+    utils.process_files_in_dir(path)
     if not (utils.PREVIEW_ONLY or utils.VIEW_ONLY):
         print_success_message()
 

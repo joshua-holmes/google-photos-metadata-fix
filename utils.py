@@ -111,7 +111,12 @@ Skipping...
     print()
 
 def __get_files(path: str) -> List[str]:
-    files = [f"{path}/{f}" for f in os.listdir(path)]
+    if os.path.isdir(path):
+        files = [f"{path}/{f}" for f in os.listdir(path)]
+    else:
+        key = __get_key(path)
+        dirname = get_file_details(path)[0]
+        files = [f"{dirname}/{f}" for f in os.listdir(dirname) if key in f]
     files = list(filter(__file_filter, files))
     return files
 
