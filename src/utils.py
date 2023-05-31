@@ -5,10 +5,8 @@ import filetype, filedate
 from progressbar import progressbar
 from win32_setctime import setctime
 
-import print_utils, file_utils
+import file_utils
 
-VIEW_ONLY = False
-PREVIEW_ONLY = False
 FIX_FILE_EXTENSIONS = False
 CONVERT_HEIC_TO_JPG = False
 

@@ -30,14 +30,5 @@ def print_success_message(imgs_modified: int):
     print()
 
 
-def print_heic_warning(fname):
-    print(f"""Cannot view heic metadata for file:
-    {fname}
-Run the script without the --view flag to automatically convert to jpg and
-apply metadata to all files.
-Skipping...
-"""
-    )
-
 if __name__ == "__main__":
     raise Exception("Do not run the program from this file. Instead, run the run.py file.")

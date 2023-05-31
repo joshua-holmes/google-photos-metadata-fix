@@ -39,10 +39,6 @@ def set_attributes(args: List[str]) -> str:
     for arg in args[1:]:
         if arg in ["--help", "-h"]:
             print_utils.print_help_and_exit()
-        elif arg == "--view":
-            utils.VIEW_ONLY = True
-        elif arg == "--preview":
-            utils.PREVIEW_ONLY = True
         elif arg[0] == "-":
             print_utils.print_help_and_exit(f"Unknown argument: {arg}")
         else:
@@ -57,13 +53,10 @@ def set_attributes(args: List[str]) -> str:
 
 def main():
     path = set_attributes(sys.argv)
-    real_run = not (utils.PREVIEW_ONLY or utils.VIEW_ONLY)
-    if real_run:
-        ask_questions()
+    ask_questions()
 
     imgs_modified = utils.process_files_in_dir(path)
-    if real_run:
-        print_utils.print_success_message(imgs_modified)
+    print_utils.print_success_message(imgs_modified)
 
 
 if __name__ == "__main__":
