@@ -13,9 +13,7 @@ def is_heic(img_fname: str) -> bool:
     return img_fmt == "heic"
 
 
-def convert_heic_to_jpg(img_fname: str) -> Optional[str]:
-    if not is_heic(img_fname):
-        return None
+def convert_heic_to_jpg(img_fname: str) -> str:
     dir_name, prefix, _ = utils.get_file_details(img_fname)
     jpg_fname = f"{dir_name}/{prefix}.jpg"
 

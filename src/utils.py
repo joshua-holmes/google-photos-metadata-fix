@@ -102,7 +102,8 @@ def process_files_in_dir(path: str) -> int:
             new_set = set()
             for img_fname in pair["images"]:
                 new_img_fname = None
-                if CONVERT_HEIC_TO_JPG:
+                can_convert = CONVERT_HEIC_TO_JPG and file_utils.is_heic(img_fname)
+                if can_convert:
                     new_img_fname = file_utils.convert_heic_to_jpg(img_fname)
                 elif can_fix_extensions:
                     new_img_fname = file_utils.fix_incorrect_extension(img_fname)
