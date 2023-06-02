@@ -1,5 +1,5 @@
 import os, json, platform
-from typing import Tuple, List
+from typing import Tuple, List, Dict
 
 import filetype, filedate
 from progressbar import progressbar
@@ -48,7 +48,23 @@ def __get_key(fname: str) -> str:
     return key
 
 
-def __apply_metadata(img_fname: str, json_fname: str):
+def group_files_by_name(files: List[str]) -> Dict:
+    file_pairs = {}
+
+    for fname in files:
+        key = __get_key(fname)
+        pair = file_pairs.setdefault(key, {})
+
+        if fname[-5:].lower() == ".json":
+            pair["json"] = fname
+        else:
+            images = pair.setdefault("images", set())
+            images.add(fname)
+
+    return file_pairs
+
+
+def apply_metadata(img_fname: str, json_fname: str):
     with open(json_fname) as json_f:
         md = json.load(json_f)
 
@@ -81,18 +97,9 @@ def get_file_details(full_name: str) -> Tuple[str, str, str]:
 
 # Entry point for this script
 def process_files_in_dir(path: str) -> int:
-    file_pairs = {}
+
     files = __get_files(path)
-
-    for fname in files:
-        key = __get_key(fname)
-        pair = file_pairs.setdefault(key, {})
-
-        if fname[-5:].lower() == ".json":
-            pair["json"] = fname
-        else:
-            images = pair.setdefault("images", set())
-            images.add(fname)
+    file_pairs = group_files_by_name(files)
 
     imgs_modified = 0
     for key in progressbar(file_pairs, redirect_stdout=True):
@@ -113,7 +120,7 @@ def process_files_in_dir(path: str) -> int:
             print(f"Cannot find pair for {key}. Skipping...")
             continue
         for img in pair["images"]:
-            __apply_metadata(img, pair["json"])
+            apply_metadata(img, pair["json"])
             imgs_modified += 1
         os.remove(pair["json"])
     return imgs_modified

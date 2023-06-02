@@ -6,7 +6,7 @@ import file_utils
 class TestConvertHeicToJpg:
     @classmethod
     def setup_class(cls):
-        cls.img_path = tft.import_image("TEST_HEIC.HEIC", "TestConvertHeicToJpg")
+        cls.img_path = tft.import_file("TEST_HEIC.HEIC", "TestConvertHeicToJpg")
 
     @classmethod
     def test_convert_heic_to_jpg(cls):
@@ -24,7 +24,7 @@ class TestConvertHeicToJpg:
 class TestFixExtension:
     @classmethod
     def setup_class(cls):
-        cls.right_img_path = tft.import_image("TEST_JPG.jpg", "TestFixExtension")
+        cls.right_img_path = tft.import_file("TEST_JPG.jpg", "TestFixExtension")
         cls.wrong_img_path = cls.right_img_path[:-3] + "png"
         os.rename(cls.right_img_path, cls.wrong_img_path)
 

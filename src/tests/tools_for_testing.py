@@ -2,7 +2,7 @@ import os, shutil
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def import_image(img_fname: str, unique_tag: str) -> str:
+def import_file(img_fname: str, unique_tag: str) -> str:
     root_dir = os.environ.get("ROOT_DIR")
     if not root_dir:
         raise Exception("Cannot find root directory!")
