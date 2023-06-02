@@ -4,7 +4,7 @@ from typing import List
 from src import print_utils, utils
 
 
-def ask_questions():
+def ask_if_fix_extensions():
     while True:
         print("Do you want to rename images if images have incorrect extensions?")
         print("If you consent, it will rename selected images, even if metadata cannot be applied later in the process.")
@@ -17,6 +17,21 @@ def ask_questions():
             break
         elif answer.lower() in ["n", "no"]:
             utils.FIX_FILE_EXTENSIONS = False
+            break
+
+
+def ask_if_convert():
+    while True:
+        print("Do you want to convert all HEIC images to JPG?")
+        print("JPG is a more common file type than HEIC and will be viewable on almost any device.")
+        print("y,yes,n,no")
+        answer = input()
+        print()
+        if answer.lower() in ["y", "yes"]:
+            utils.CONVERT_HEIC_TO_JPG = True
+            break
+        elif answer.lower() in ["n", "no"]:
+            utils.CONVERT_HEIC_TO_JPG = False
             break
 
 
@@ -53,7 +68,11 @@ def set_attributes(args: List[str]) -> str:
 
 def main():
     path = set_attributes(sys.argv)
-    ask_questions()
+
+    if type(utils.FIX_FILE_EXTENSIONS) is not bool:
+        ask_if_fix_extensions()
+    if type(utils.CONVERT_HEIC_TO_JPG) is not bool:
+        ask_if_convert()
 
     imgs_modified = utils.process_files_in_dir(path)
     print_utils.print_success_message(imgs_modified)

@@ -7,8 +7,8 @@ from win32_setctime import setctime
 
 import file_utils
 
-FIX_FILE_EXTENSIONS = False
-CONVERT_HEIC_TO_JPG = False
+FIX_FILE_EXTENSIONS = None
+CONVERT_HEIC_TO_JPG = None
 
 
 def __file_filter(fname: str) -> bool:
