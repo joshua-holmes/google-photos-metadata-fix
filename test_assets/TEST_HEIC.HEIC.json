@@ -1,0 +1,33 @@
+{
+  "title": "IMG_0799.HEIC",
+  "description": "",
+  "imageViews": "30",
+  "creationTime": {
+    "timestamp": "1563490529",
+    "formatted": "Jul 18, 2019, 10:55:29 PM UTC"
+  },
+  "photoTakenTime": {
+    "timestamp": "1563395329",
+    "formatted": "Jul 17, 2019, 8:28:49 PM UTC"
+  },
+  "geoData": {
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "altitude": 0.0,
+    "latitudeSpan": 0.0,
+    "longitudeSpan": 0.0
+  },
+  "geoDataExif": {
+    "latitude": 0.0,
+    "longitude": 0.0,
+    "altitude": 0.0,
+    "latitudeSpan": 0.0,
+    "longitudeSpan": 0.0
+  },
+  "url": "https://lh3.googleusercontent.com/g-Spqub0gJccA3833K32MgbYwk94xS6z47ctcZNTYk3K56yTQdB_vGqio_UnW7XDeIcIU-TEy8uc-iQBMDMqavbTPGLyzCZchzXue8A",
+  "googlePhotosOrigin": {
+    "mobileUpload": {
+      "deviceType": "IOS_PHONE"
+    }
+  }
+}
