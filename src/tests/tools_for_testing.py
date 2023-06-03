@@ -10,3 +10,5 @@ def import_file(img_fname: str, unique_tag: str) -> str:
     shutil.copy2(f"{root_dir}/test_assets/{img_fname}", new_location)
     return new_location
 
+def main():
+    pass

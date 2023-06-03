@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 sys.path.append("../")
 
 import run
-from src import utils
+from src import lib
 
 ROOT_DIR = "/".join(os.path.dirname(os.path.abspath(__file__)).split("/")[:-1])
 
@@ -42,8 +42,8 @@ def general_setup() -> Tuple[str, Dict]:
 class TestBasicIntegration:
     @classmethod
     def setup_class(cls):
-        utils.CONVERT_HEIC_TO_JPG = False
-        utils.FIX_FILE_EXTENSIONS = False
+        lib.CONVERT_HEIC_TO_JPG = False
+        lib.FIX_FILE_EXTENSIONS = False
         cls.test_dir, cls.json_data = general_setup()
         run.main()
 
@@ -63,8 +63,8 @@ class TestBasicIntegration:
 class TestIntegrationWithFixedExtensions:
     @classmethod
     def setup_class(cls):
-        utils.CONVERT_HEIC_TO_JPG = False
-        utils.FIX_FILE_EXTENSIONS = True
+        lib.CONVERT_HEIC_TO_JPG = False
+        lib.FIX_FILE_EXTENSIONS = True
         cls.test_dir, cls.json_data = general_setup()
         run.main()
 
@@ -84,8 +84,8 @@ class TestIntegrationWithFixedExtensions:
 class TestIntegrationWithConversion:
     @classmethod
     def setup_class(cls):
-        utils.CONVERT_HEIC_TO_JPG = True
-        utils.FIX_FILE_EXTENSIONS = False
+        lib.CONVERT_HEIC_TO_JPG = True
+        lib.FIX_FILE_EXTENSIONS = False
         cls.test_dir, cls.json_data = general_setup()
         run.main()
 

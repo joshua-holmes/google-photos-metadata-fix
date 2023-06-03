@@ -1,7 +1,7 @@
 import sys, os
 from typing import List
 
-from src import print_utils, utils
+from src import print_utils, lib
 
 
 def ask_if_fix_extensions():
@@ -13,10 +13,10 @@ def ask_if_fix_extensions():
         answer = input()
         print()
         if answer.lower() in ["y", "yes"]:
-            utils.FIX_FILE_EXTENSIONS = True
+            lib.FIX_FILE_EXTENSIONS = True
             break
         elif answer.lower() in ["n", "no"]:
-            utils.FIX_FILE_EXTENSIONS = False
+            lib.FIX_FILE_EXTENSIONS = False
             break
 
 
@@ -28,10 +28,10 @@ def ask_if_convert():
         answer = input()
         print()
         if answer.lower() in ["y", "yes"]:
-            utils.CONVERT_HEIC_TO_JPG = True
+            lib.CONVERT_HEIC_TO_JPG = True
             break
         elif answer.lower() in ["n", "no"]:
-            utils.CONVERT_HEIC_TO_JPG = False
+            lib.CONVERT_HEIC_TO_JPG = False
             break
 
 
@@ -69,12 +69,12 @@ def set_attributes(args: List[str]) -> str:
 def main():
     path = set_attributes(sys.argv)
 
-    if type(utils.FIX_FILE_EXTENSIONS) is not bool:
+    if type(lib.FIX_FILE_EXTENSIONS) is not bool:
         ask_if_fix_extensions()
-    if type(utils.CONVERT_HEIC_TO_JPG) is not bool:
+    if type(lib.CONVERT_HEIC_TO_JPG) is not bool:
         ask_if_convert()
 
-    imgs_modified = utils.process_files_in_dir(path)
+    imgs_modified = lib.process_files_in_dir(path)
     print_utils.print_success_message(imgs_modified)
 
 

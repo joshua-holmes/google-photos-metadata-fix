@@ -95,13 +95,9 @@ def get_file_details(full_name: str) -> Tuple[str, str, str]:
     return (dir_name, prefix, ext)
 
 
-# Entry point for this script
-def process_files_in_dir(path: str) -> int:
-
-    files = __get_files(path)
-    file_pairs = group_files_by_name(files)
-
-    imgs_modified = 0
+def apply_fixes(file_pairs):
+    if FIX_FILE_EXTENSIONS or CONVERT_HEIC_TO_JPG:
+        print("Applying requested fixes...")
     for key in progressbar(file_pairs, redirect_stdout=True):
         pair = file_pairs[key]
         can_fix_extensions = FIX_FILE_EXTENSIONS and len(pair.get("images"))
@@ -116,6 +112,19 @@ def process_files_in_dir(path: str) -> int:
                     new_img_fname = file_utils.fix_incorrect_extension(img_fname)
                 new_set.add(new_img_fname or img_fname)
             pair["images"] = new_set
+
+
+# Entry point for this script
+def process_files_in_dir(path: str) -> int:
+
+    files = __get_files(path)
+    file_pairs = group_files_by_name(files)
+    apply_fixes(file_pairs)
+
+    imgs_modified = 0
+    print("Applying metadata...")
+    for key in progressbar(file_pairs, redirect_stdout=True):
+        pair = file_pairs[key]
         if len(pair) < 2:
             print(f"Cannot find pair for {key}. Skipping...")
             continue
