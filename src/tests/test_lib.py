@@ -18,12 +18,13 @@ class TestApplyMetadata:
             cls.json = json.load(f)
         assert os.path.getctime(cls.img_path) != float(cls.json["creationTime"]["timestamp"])
         assert os.path.getmtime(cls.img_path) != float(cls.json["photoTakenTime"]["timestamp"])
-
-    @classmethod
-    def test_apply_metadata(cls):
         lib.apply_metadata(cls.img_path, cls.json_path)
-        # assert os.path.getctime(cls.img_path) == float(cls.json["creationTime"]["timestamp"])
-        assert os.path.getmtime(cls.img_path) == float(cls.json["photoTakenTime"]["timestamp"])
+
+    def test_apply_modified_time(self):
+        assert os.path.getmtime(self.img_path) == float(self.json["photoTakenTime"]["timestamp"])
+
+    def test_apply_created_time(self):
+        assert os.path.getctime(self.img_path) == float(self.json["creationTime"]["timestamp"])
 
     @classmethod
     def teardown_class(cls):
