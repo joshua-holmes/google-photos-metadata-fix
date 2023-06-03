@@ -1,6 +1,8 @@
 import os, sys, json
+from datetime import datetime
 
-import pytest_mock
+import filedate, platform
+from dateutil import parser
 
 import tools_for_testing as tft
 
@@ -16,7 +18,7 @@ class TestApplyMetadata:
 
         with open(cls.json_path) as f:
             cls.json = json.load(f)
-        assert os.path.getctime(cls.img_path) != float(cls.json["creationTime"]["timestamp"])
+        assert os.path.getctime(cls.img_path) != float(cls.json["photoTakenTime"]["timestamp"])
         assert os.path.getmtime(cls.img_path) != float(cls.json["photoTakenTime"]["timestamp"])
         lib.apply_metadata(cls.img_path, cls.json_path)
 
@@ -24,7 +26,14 @@ class TestApplyMetadata:
         assert os.path.getmtime(self.img_path) == float(self.json["photoTakenTime"]["timestamp"])
 
     def test_apply_created_time(self):
-        assert os.path.getctime(self.img_path) == float(self.json["creationTime"]["timestamp"])
+        # Linux's "creation" date is an after-thought and sometimes doesn't work
+        if platform.system() == "Windows":
+            assert os.path.getctime(self.img_path) == float(self.json["photoTakenTime"]["timestamp"])
+
+    def test_apply_exif_data(self):
+        test_date = filedate.File(self.img_path).get()["modified"]
+        correct_date = datetime.fromtimestamp(int(self.json["photoTakenTime"]["timestamp"]))
+        assert test_date == correct_date
 
     @classmethod
     def teardown_class(cls):

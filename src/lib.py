@@ -1,9 +1,11 @@
 import os, json, platform
 from typing import Tuple, List, Dict
+from datetime import datetime
 
 import filetype, filedate
 from progressbar import progressbar
 from win32_setctime import setctime
+from exif import Image as ImageExif
 
 import file_utils
 
@@ -48,6 +50,37 @@ def __get_key(fname: str) -> str:
     return key
 
 
+def __apply_exif(img_fname: str, dt: datetime):
+    fmt = "%Y:%m:%d %H:%M:%S"
+    dt_str = dt.strftime(fmt)
+
+    try:
+        with open(img_fname, "rb") as f:
+            image = ImageExif(f)
+        try:
+            image.datetime = dt_str
+            image.datetime_original = dt_str
+            image.datetime_digitized = dt_str
+        except Exception as e:
+            print("Failed to apply exif attributes:", e)
+        with open(img_fname, "wb") as f:
+            f.write(image.get_file())
+    except Exception as e:
+        print("Cannot apply exif attributes to this file type", e)
+
+
+def __apply_os_metadata(img_fname: str, dt: datetime):
+    fmt = "%Y.%m.%d %H:%M:%S"
+    dt_str = dt.strftime(fmt)
+
+    fdate = filedate.File(img_fname)
+    fdate.set(
+        created = dt_str,
+	    modified = dt_str,
+	    accessed = dt_str
+    )
+
+
 def group_files_by_name(files: List[str]) -> Dict:
     file_pairs = {}
 
@@ -64,35 +97,25 @@ def group_files_by_name(files: List[str]) -> Dict:
     return file_pairs
 
 
-def apply_metadata(img_fname: str, json_fname: str):
-    with open(json_fname) as json_f:
-        md = json.load(json_f)
-
-
-    time = md.get("photoTakenTime", md.get("creationTime", {}))
-    time_num = int(time.get("timestamp"))
-    if not time_num:
-        return
-
-    # Set modified date
-    os.utime(img_fname, (time_num, time_num))
-
-    # Set created date
-    if platform.uname().system == "Windows":
-        setctime(img_fname, time_num)
-    else:
-        fdate = filedate.File(img_fname)
-        modified_date = fdate.get()["modified"].strftime("%Y.%m.%d %H:%M:%S")
-        fdate.set(
-            created=modified_date,
-        )
-
-
 def get_file_details(full_name: str) -> Tuple[str, str, str]:
     dir_name = os.path.dirname(full_name)
     basename = os.path.basename(full_name)
     prefix, ext = os.path.splitext(basename)
     return (dir_name, prefix, ext)
+
+
+def apply_metadata(img_fname: str, json_fname: str):
+    with open(json_fname) as json_f:
+        md = json.load(json_f)
+
+    times = md.get("photoTakenTime", md.get("creationTime", {}))
+    time_num = int(times.get("timestamp"))
+    if not time_num:
+        return
+    dt = datetime.fromtimestamp(time_num)
+
+    __apply_exif(img_fname, dt)
+    __apply_os_metadata(img_fname, dt)
 
 
 def apply_fixes(file_pairs):
