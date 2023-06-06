@@ -1,4 +1,4 @@
-import os, json, platform
+import os, json, platform, zipfile
 from typing import Tuple, List, Dict
 from datetime import datetime
 
@@ -19,17 +19,6 @@ def __file_filter(fname: str) -> bool:
     is_video = filetype.is_video(fname)
     is_json = fname[-5:].lower() == ".json"
     return is_file and (is_image or is_video or is_json)
-
-
-def __get_files(path: str) -> List[str]:
-    if os.path.isdir(path):
-        files = [f"{path}/{f}" for f in os.listdir(path)]
-    else:
-        key = __get_key(path)
-        dirname = get_file_details(path)[0]
-        files = [f"{dirname}/{f}" for f in os.listdir(dirname) if key in f]
-    files = list(filter(__file_filter, files))
-    return files
 
 
 def __get_key(fname: str) -> str:
@@ -81,20 +70,61 @@ def __apply_os_metadata(img_fname: str, dt: datetime):
     )
 
 
+def __search_dir_for_files(dirname: str) -> List[str]:
+    if not os.path.isdir(dirname):
+        raise Exception(f'"{dirname}" is not a directory')
+    list_of_file_paths = []
+    stack = [dirname]
+    while stack:
+        cur = stack.pop()
+        if os.path.isdir(cur):
+            for item in os.listdir(cur):
+                stack.append(f"{cur}/{item}")
+        else:
+            list_of_file_paths.append(cur)
+    return list_of_file_paths
+
+def get_files(path: str) -> List[str]:
+    if os.path.isdir(path):
+        files = [f"{path}/{f}" for f in os.listdir(path)]
+    elif zipfile.is_zipfile(path):
+        key = __get_key(path)
+        dirname = get_file_details(path)[0]
+        files = [f"{dirname}/{f}" for f in os.listdir(dirname) if key in f]
+    else:
+        raise Exception("Input must be either a directory or a zip file")
+    files = list(filter(__file_filter, files))
+    return files
+
+
 def group_files_by_name(files: List[str]) -> Dict:
     file_pairs = {}
 
     for fname in files:
+        dirname, prefix, ext = get_file_details(fname)
         key = __get_key(fname)
-        pair = file_pairs.setdefault(key, {})
+        pair = file_pairs.setdefault(dirname, {}).setdefault(key, {})
 
         if fname[-5:].lower() == ".json":
-            pair["json"] = fname
+            pair["json"] = prefix + ext
         else:
             images = pair.setdefault("images", set())
-            images.add(fname)
+            images.add(prefix + ext)
 
     return file_pairs
+
+
+def get_file_paths(path: str) -> List[str]:
+    if os.path.isdir(path):
+        return __search_dir_for_files(path)
+    elif zipfile.is_zipfile(path):
+        dirname, prefix, _ = get_file_details(path)
+        extracted_path = f"{dirname}/{prefix}"
+        with zipfile.ZipFile(path, "r") as zip_obj:
+            zip_obj.extractall(extracted_path)
+        return __search_dir_for_files(extracted_path)
+    else:
+        raise Exception("Only directories and zip files are allowed to be entered as an arg to this script")
 
 
 def get_file_details(full_name: str) -> Tuple[str, str, str]:
@@ -118,31 +148,31 @@ def apply_metadata(img_fname: str, json_fname: str):
     __apply_os_metadata(img_fname, dt)
 
 
-def apply_fixes(file_pairs):
+def apply_image_fixes(file_pairs):
     if FIX_FILE_EXTENSIONS or CONVERT_HEIC_TO_JPG:
         print("Applying requested fixes...")
-    for key in progressbar(file_pairs, redirect_stdout=True):
-        pair = file_pairs[key]
-        can_fix_extensions = FIX_FILE_EXTENSIONS and len(pair.get("images"))
-        if CONVERT_HEIC_TO_JPG or can_fix_extensions:
-            new_set = set()
-            for img_fname in pair["images"]:
-                new_img_fname = None
-                can_convert = CONVERT_HEIC_TO_JPG and file_utils.is_heic(img_fname)
-                if can_convert:
-                    new_img_fname = file_utils.convert_heic_to_jpg(img_fname)
-                elif can_fix_extensions:
-                    new_img_fname = file_utils.fix_incorrect_extension(img_fname)
-                new_set.add(new_img_fname or img_fname)
-            pair["images"] = new_set
+    for dirname in progressbar(file_pairs, redirect_stdout=True):
+        for key in progressbar(file_pairs[dirname], redirect_stdout=True):
+            pair = file_pairs[dirname][key]
+            can_fix_extensions = FIX_FILE_EXTENSIONS and len(pair.get("images"))
+            if CONVERT_HEIC_TO_JPG or can_fix_extensions:
+                new_set = set()
+                for img_fname in pair["images"]:
+                    new_img_fname = None
+                    can_convert = CONVERT_HEIC_TO_JPG and file_utils.is_heic(img_fname)
+                    if can_convert:
+                        new_img_fname = file_utils.convert_heic_to_jpg(img_fname)
+                    elif can_fix_extensions:
+                        new_img_fname = file_utils.fix_incorrect_extension(img_fname)
+                    new_set.add(new_img_fname or img_fname)
+                pair["images"] = new_set
 
 
 # Entry point for this script
 def process_files_in_dir(path: str) -> int:
-
-    files = __get_files(path)
+    files = get_files(path)
     file_pairs = group_files_by_name(files)
-    apply_fixes(file_pairs)
+    apply_image_fixes(file_pairs)
 
     imgs_modified = 0
     print("Applying metadata...")

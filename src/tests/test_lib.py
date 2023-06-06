@@ -1,7 +1,7 @@
 import os, sys, json, shutil, pathlib
 from datetime import datetime
 
-import filedate, platform
+import filedate, platform, pytest
 from dateutil import parser
 from tests.tools_for_testing import CUR_DIR
 
@@ -44,12 +44,12 @@ class TestApplyMetadata:
 
 
 class TestGroupFilesByName:
-    def test_edited_image_groups_up_with_regular(self):
+    def test_edited_images(self):
         files = ["COOLNAME.jpg", "COOLNAME-edited.jpg"]
         result = lib.group_files_by_name(files)
         assert result[""]["COOLNAME"]["images"] == set(files)
 
-    def test_images_with_different_name_do_not_group_up(self):
+    def test_images_with_different_names(self):
         files = ["COOLNAME.jpg", "OTHERNAME.jpg"]
         result = lib.group_files_by_name(files)
         assert result[""]["COOLNAME"]["images"] == set([files[0]])
@@ -81,6 +81,7 @@ class TestGroupFilesByName:
             "images": {"TEST_HEIC.HEIC"}
         }}}
         lib.apply_image_fixes(file_structure)
+        lib.CONVERT_HEIC_TO_JPG = False # cleanup
         assert file_structure == { "": { "TEST_HEIC": {
             "images": {"TEST_HEIC.jpg"}
         }}}
@@ -89,6 +90,10 @@ class TestGroupFilesByName:
 class TestGetFiles:
     @classmethod
     def setup_class(cls):
+        cls.zip_prefix = "TEST_takeout"
+        tft.remove_dir(f"{CUR_DIR}/{cls.zip_prefix}")
+        tft.remove_dir(f"{CUR_DIR}/zipthis")
+
         jpg_path = tft.import_file("TEST_JPG.jpg", "TestGetFiles")
         heic_path = tft.import_file("TEST_HEIC.HEIC", "TestGetFiles")
         jpg_dir = f"{CUR_DIR}/zipthis/Takeout/Google Photos/JPGs"
@@ -100,18 +105,21 @@ class TestGetFiles:
         os.rename(jpg_path, f"{jpg_dir}/TEST_JPG.jpg")
         os.rename(heic_path, f"{heic_dir}/TEST_HEIC.HEIC")
         
-        cls.zip_path = shutil.make_archive(f"{CUR_DIR}/TEST_takeout", "zip", f"{CUR_DIR}/zipthis")
-        os.rmdir(f"{CUR_DIR}/zipthis")
+        cls.zip_path = shutil.make_archive(f"{CUR_DIR}/{cls.zip_prefix}", "zip", f"{CUR_DIR}/zipthis")
 
-    def test_get_files_paths(self):
-        file_paths = lib.get_file_paths(self.zip_path)
-        assert file_paths == [
-            f"{CUR_DIR}/Takeout/Google Photos/JPGs/TEST_JPG.jpg",
-            f"{CUR_DIR}/Takeout/Google Photos/HEICs/TEST_HEIC.HEIC"
+        tft.remove_dir(f"{CUR_DIR}/zipthis")
+
+        # Run tested script
+        cls.file_paths = lib.get_file_paths(cls.zip_path)
+
+    def test_get_files_paths_from_zip(self):
+        assert self.file_paths == [
+            f"{CUR_DIR}/{self.zip_prefix}/Takeout/Google Photos/JPGs/TEST_JPG.jpg",
+            f"{CUR_DIR}/{self.zip_prefix}/Takeout/Google Photos/HEICs/TEST_HEIC.HEIC"
         ]
 
     @classmethod
     def teardown_class(cls):
         os.remove(cls.zip_path)
-        tft.remove_dir(f"{CUR_DIR}/Takeout")
+        tft.remove_dir(f"{CUR_DIR}/{cls.zip_prefix}")
 
