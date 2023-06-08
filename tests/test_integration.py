@@ -38,8 +38,6 @@ class TestBasicIntegration:
         lib.CONVERT_HEIC_TO_JPG = False
         lib.FIX_FILE_EXTENSIONS = False
         cls.test_dir, cls.json_data = general_setup()
-        print("HEEEERE", os.path.realpath(os.curdir))
-        print("UHM", ROOT_DIR)
         run.main()
 
     @classmethod
