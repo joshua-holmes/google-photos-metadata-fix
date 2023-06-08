@@ -50,12 +50,12 @@ def __apply_exif(img_fname: str, dt: datetime):
             image.datetime = dt_str
             image.datetime_original = dt_str
             image.datetime_digitized = dt_str
-        except Exception as e:
-            print("Failed to apply exif attributes:", e)
+        except:
+            pass
         with open(img_fname, "wb") as f:
             f.write(image.get_file())
     except Exception as e:
-        print("Cannot apply exif attributes to this file type", e)
+        pass
 
 
 def __apply_os_metadata(img_fname: str, dt: datetime):
@@ -84,18 +84,6 @@ def __search_dir_for_files(dirname: str) -> List[str]:
             list_of_file_paths.append(cur)
     return list_of_file_paths
 
-def get_files(path: str) -> List[str]:
-    if os.path.isdir(path):
-        files = [f"{path}/{f}" for f in os.listdir(path)]
-    elif zipfile.is_zipfile(path):
-        key = __get_key(path)
-        dirname = get_file_details(path)[0]
-        files = [f"{dirname}/{f}" for f in os.listdir(dirname) if key in f]
-    else:
-        raise Exception("Input must be either a directory or a zip file")
-    files = list(filter(__file_filter, files))
-    return files
-
 
 def group_files_by_name(files: List[str]) -> Dict:
     file_pairs = {}
@@ -120,6 +108,7 @@ def get_file_paths(path: str) -> List[str]:
     elif zipfile.is_zipfile(path):
         dirname, prefix, _ = get_file_details(path)
         extracted_path = f"{dirname}/{prefix}"
+        print("Extracting...")
         with zipfile.ZipFile(path, "r") as zip_obj:
             zip_obj.extractall(extracted_path)
         return __search_dir_for_files(extracted_path)
@@ -149,30 +138,37 @@ def apply_metadata(img_path: str, json_path: str):
 
 
 def apply_image_fixes(file_pairs):
-    if FIX_FILE_EXTENSIONS or CONVERT_HEIC_TO_JPG:
-        print("Applying requested fixes...")
     for dirname in progressbar(file_pairs, redirect_stdout=True):
-        for key in progressbar(file_pairs[dirname], redirect_stdout=True):
+        print("Applying file fixes for directory:", dirname)
+        for key in file_pairs[dirname]:
             pair = file_pairs[dirname][key]
-            can_fix_extensions = FIX_FILE_EXTENSIONS and len(pair.get("images"))
+            can_fix_extensions = FIX_FILE_EXTENSIONS and len(pair.get("images", set()))
             if CONVERT_HEIC_TO_JPG or can_fix_extensions:
                 new_set = set()
-                for img_fname in pair["images"]:
-                    new_img_fname = None
-                    can_convert = CONVERT_HEIC_TO_JPG and file_utils.is_heic(img_fname)
+                for img_fname in pair.get("images", set()):
+                    img_path = f"{dirname}/{img_fname}"
+                    new_img_path = None
+                    can_convert = CONVERT_HEIC_TO_JPG and file_utils.is_heic(img_path)
                     if can_convert:
-                        new_img_fname = file_utils.convert_heic_to_jpg(img_fname)
+                        new_img_path = file_utils.convert_heic_to_jpg(img_path)
                     elif can_fix_extensions:
-                        new_img_fname = file_utils.fix_incorrect_extension(img_fname)
+                        new_img_path = file_utils.fix_incorrect_extension(img_path)
+                    if new_img_path:
+                        _, new_prefix, new_ext = get_file_details(new_img_path)
+                        new_img_fname = new_prefix + new_ext
+                    else:
+                        new_img_fname = None
                     new_set.add(new_img_fname or img_fname)
                 pair["images"] = new_set
 
 
 # Entry point for this script
 def process_files_in_dir(path: str) -> int:
-    files = get_files(path)
+    files = get_file_paths(path)
     file_pairs = group_files_by_name(files)
-    apply_image_fixes(file_pairs)
+
+    if FIX_FILE_EXTENSIONS or CONVERT_HEIC_TO_JPG:
+        apply_image_fixes(file_pairs)
 
     imgs_modified = 0
     print("Applying metadata...")
@@ -180,7 +176,6 @@ def process_files_in_dir(path: str) -> int:
         for key in file_pairs[dirname]:
             pair = file_pairs[dirname][key]
             if len(pair) < 2:
-                print(f"Cannot find pair for {key}. Skipping...")
                 continue
             for img in pair["images"]:
                 apply_metadata(f"{dirname}/{img}", f"{dirname}/{pair['json']}")

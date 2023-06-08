@@ -7,28 +7,31 @@ from pillow_heif import register_heif_opener
 
 import lib
 
-def is_heic(img_fname: str) -> bool:
-    with open(img_fname, "rb") as f:
+
+def is_heic(img_path: str) -> bool:
+    with open(img_path, "rb") as f:
         img_fmt = whatimage.identify_image(f.read())
     return img_fmt == "heic"
 
 
-def convert_heic_to_jpg(img_fname: str) -> str:
-    dir_name, prefix, _ = lib.get_file_details(img_fname)
-    jpg_fname = f"{dir_name}/{prefix}.jpg"
+def convert_heic_to_jpg(img_path: str) -> str:
+    dir_name, prefix, ext = lib.get_file_details(img_path)
+    jpg_path = f"{dir_name}/{prefix}.jpg"
 
     register_heif_opener()
-    with ImagePIL.open(img_fname) as f:
-        f.save(jpg_fname)
+    with ImagePIL.open(img_path) as f:
+        f.save(jpg_path)
+    os.remove(img_path)
 
-    os.remove(img_fname)
-    return jpg_fname
+    _, jpg_prefix, jpg_ext = lib.get_file_details(jpg_path)
+    print(f"Converted: {prefix + ext} -> {jpg_prefix + jpg_ext}")
+    return jpg_path
 
 
-def fix_incorrect_extension(img_fname) -> Optional[str]:
-    with open(img_fname, "rb") as f:
+def fix_incorrect_extension(img_path) -> Optional[str]:
+    with open(img_path, "rb") as f:
         img_fmt = whatimage.identify_image(f.read())
-    dirname, prefix, ext = lib.get_file_details(img_fname)
+    dirname, prefix, ext = lib.get_file_details(img_path)
 
     if img_fmt and img_fmt.lower() == "jpeg":
         img_fmt = "jpg"
@@ -36,12 +39,12 @@ def fix_incorrect_extension(img_fname) -> Optional[str]:
         ext = ".jpg"
 
     if img_fmt and ext[1:].lower() != img_fmt.lower():
-        new_fname = dirname + "/" + prefix + "." + img_fmt.lower()
-        os.rename(img_fname, new_fname)
-        _, new_prefix, new_ext = lib.get_file_details(new_fname)
-        _, old_prefix, old_ext = lib.get_file_details(img_fname)
+        new_img_path = dirname + "/" + prefix + "." + img_fmt.lower()
+        os.rename(img_path, new_img_path)
+        _, new_prefix, new_ext = lib.get_file_details(new_img_path)
+        _, old_prefix, old_ext = lib.get_file_details(img_path)
         print(f"Renamed: {old_prefix + old_ext} -> {new_prefix + new_ext}")
-        return new_fname
+        return new_img_path
     return None
 
 if __name__ == "__main__":
