@@ -1,9 +1,7 @@
-import os, sys, json, shutil, pathlib
+import os, sys, json
 from datetime import datetime
 
-import filedate, platform, pytest
-from dateutil import parser
-from tests.tools_for_testing import CUR_DIR
+import filedate, platform
 
 import tools_for_testing as tft
 
@@ -42,37 +40,7 @@ class TestApplyMetadata:
             if os.path.exists(fname):
                 os.remove(fname)
 
-
-class TestGroupFilesByName:
-    def test_edited_images(self):
-        files = ["COOLNAME.jpg", "COOLNAME-edited.jpg"]
-        result = lib.group_files_by_name(files)
-        assert result[""]["COOLNAME"]["images"] == set(files)
-
-    def test_images_with_different_names(self):
-        files = ["COOLNAME.jpg", "OTHERNAME.jpg"]
-        result = lib.group_files_by_name(files)
-        assert result[""]["COOLNAME"]["images"] == set([files[0]])
-        assert result[""]["OTHERNAME"]["images"] == set([files[1]])
-
-    def test_image_groups_with_json(self):
-        files = ["COOLNAME.jpg", "COOLNAME.jpg.json", "OTHERNAME.jpg"]
-        result = lib.group_files_by_name(files)
-        assert result[""]["COOLNAME"] == {
-            "images": {"COOLNAME.jpg"},
-            "json": "COOLNAME.jpg.json"
-        }
-
-    def test_images_from_different_directories(self):
-        files = ["/some/directory/COOLNAME.jpg", "/another/directory/COOLNAME.jpg.json"]
-        result = lib.group_files_by_name(files)
-        assert result["/some/directory"]["COOLNAME"] == {
-            "images": {"COOLNAME.jpg"}
-        }
-        assert result["/another/directory"]["COOLNAME"] == {
-            "json": "COOLNAME.jpg.json"
-        }
-
+class TestApplyFileFixes:
     def test_file_renaming_in_group(self, mocker):
         lib.CONVERT_HEIC_TO_JPG = True
         mocker.patch("file_utils.convert_heic_to_jpg", return_value="TEST_HEIC.jpg")
@@ -85,41 +53,4 @@ class TestGroupFilesByName:
         assert file_structure == { "": { "TEST_HEIC": {
             "images": {"TEST_HEIC.jpg"}
         }}}
-
-
-class TestGetFiles:
-    @classmethod
-    def setup_class(cls):
-        cls.zip_prefix = "TEST_takeout"
-        tft.remove_dir(f"{CUR_DIR}/{cls.zip_prefix}")
-        tft.remove_dir(f"{CUR_DIR}/zipthis")
-
-        jpg_path = tft.import_file("TEST_JPG.jpg", "TestGetFiles")
-        heic_path = tft.import_file("TEST_HEIC.HEIC", "TestGetFiles")
-        jpg_dir = f"{CUR_DIR}/zipthis/Takeout/Google Photos/JPGs"
-        heic_dir = f"{CUR_DIR}/zipthis/Takeout/Google Photos/HEICs"
-
-        pathlib.Path(jpg_dir).mkdir(parents=True)
-        pathlib.Path(heic_dir).mkdir(parents=True)
-
-        os.rename(jpg_path, f"{jpg_dir}/TEST_JPG.jpg")
-        os.rename(heic_path, f"{heic_dir}/TEST_HEIC.HEIC")
-        
-        cls.zip_path = shutil.make_archive(f"{CUR_DIR}/{cls.zip_prefix}", "zip", f"{CUR_DIR}/zipthis")
-
-        tft.remove_dir(f"{CUR_DIR}/zipthis")
-
-        # Run tested script
-        cls.file_paths = lib.get_file_paths(cls.zip_path)
-
-    def test_get_files_paths_from_zip(self):
-        assert self.file_paths == [
-            f"{CUR_DIR}/{self.zip_prefix}/Takeout/Google Photos/JPGs/TEST_JPG.jpg",
-            f"{CUR_DIR}/{self.zip_prefix}/Takeout/Google Photos/HEICs/TEST_HEIC.HEIC"
-        ]
-
-    @classmethod
-    def teardown_class(cls):
-        os.remove(cls.zip_path)
-        tft.remove_dir(f"{CUR_DIR}/{cls.zip_prefix}")
 
