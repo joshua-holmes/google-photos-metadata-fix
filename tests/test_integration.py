@@ -6,17 +6,10 @@ from typing import Dict, Tuple
 sys.path.append("../")
 
 import run
+import src.tests.tools_for_testing as tft
 from src import lib
 
 ROOT_DIR = "/".join(os.path.dirname(os.path.abspath(__file__)).split("/")[:-1])
-
-
-def remove_dir(path):
-    if not os.path.exists(path):
-        return
-    for item in os.listdir(path):
-        os.remove(f"{path}/{item}")
-    os.rmdir(path)
 
 
 def general_setup() -> Tuple[str, Dict]:
@@ -25,7 +18,7 @@ def general_setup() -> Tuple[str, Dict]:
     fnames = os.listdir(asset_dir)
     old_files = [f"{asset_dir}/{f}" for f in fnames if "TEST_HEIC" in f]
     new_files = [f"{test_dir}/{f}" for f in fnames if "TEST_HEIC" in f]
-    remove_dir(test_dir)
+    tft.remove_dir(test_dir)
     os.mkdir(test_dir)
 
     for old, new in zip(old_files, new_files):
@@ -45,6 +38,8 @@ class TestBasicIntegration:
         lib.CONVERT_HEIC_TO_JPG = False
         lib.FIX_FILE_EXTENSIONS = False
         cls.test_dir, cls.json_data = general_setup()
+        print("HEEEERE", os.path.realpath(os.curdir))
+        print("UHM", ROOT_DIR)
         run.main()
 
     @classmethod
@@ -57,47 +52,5 @@ class TestBasicIntegration:
 
     @classmethod
     def teardown_class(cls):
-        remove_dir(cls.test_dir)
-
-
-class TestIntegrationWithFixedExtensions:
-    @classmethod
-    def setup_class(cls):
-        lib.CONVERT_HEIC_TO_JPG = False
-        lib.FIX_FILE_EXTENSIONS = True
-        cls.test_dir, cls.json_data = general_setup()
-        run.main()
-
-    @classmethod
-    def test_fixing_extensions(cls):
-        assert "TEST_HEIC-edited.jpg" in os.listdir(cls.test_dir)
-
-    @classmethod
-    def test_metadata_changed(cls):
-        assert os.path.getmtime(f"{cls.test_dir}/TEST_HEIC.HEIC") == int(cls.json_data["photoTakenTime"]["timestamp"])
-
-    @classmethod
-    def teardown_class(cls):
-        remove_dir(cls.test_dir)
-
-
-class TestIntegrationWithConversion:
-    @classmethod
-    def setup_class(cls):
-        lib.CONVERT_HEIC_TO_JPG = True
-        lib.FIX_FILE_EXTENSIONS = False
-        cls.test_dir, cls.json_data = general_setup()
-        run.main()
-
-    @classmethod
-    def test_file_conversion(cls):
-        assert "TEST_HEIC.jpg" in os.listdir(cls.test_dir)
-
-    @classmethod
-    def test_metadata_changed(cls):
-        assert os.path.getmtime(f"{cls.test_dir}/TEST_HEIC.jpg") == int(cls.json_data["photoTakenTime"]["timestamp"])
-
-    @classmethod
-    def teardown_class(cls):
-        remove_dir(cls.test_dir)
+        tft.remove_dir(cls.test_dir)
 

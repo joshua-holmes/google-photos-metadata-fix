@@ -134,8 +134,8 @@ def get_file_details(full_name: str) -> Tuple[str, str, str]:
     return (dir_name, prefix, ext)
 
 
-def apply_metadata(img_fname: str, json_fname: str):
-    with open(json_fname) as json_f:
+def apply_metadata(img_path: str, json_path: str):
+    with open(json_path) as json_f:
         md = json.load(json_f)
 
     times = md.get("photoTakenTime", md.get("creationTime", {}))
@@ -144,8 +144,8 @@ def apply_metadata(img_fname: str, json_fname: str):
         return
     dt = datetime.fromtimestamp(time_num)
 
-    __apply_exif(img_fname, dt)
-    __apply_os_metadata(img_fname, dt)
+    __apply_exif(img_path, dt)
+    __apply_os_metadata(img_path, dt)
 
 
 def apply_image_fixes(file_pairs):
@@ -176,15 +176,16 @@ def process_files_in_dir(path: str) -> int:
 
     imgs_modified = 0
     print("Applying metadata...")
-    for key in progressbar(file_pairs, redirect_stdout=True):
-        pair = file_pairs[key]
-        if len(pair) < 2:
-            print(f"Cannot find pair for {key}. Skipping...")
-            continue
-        for img in pair["images"]:
-            apply_metadata(img, pair["json"])
-            imgs_modified += 1
-        os.remove(pair["json"])
+    for dirname in progressbar(file_pairs, redirect_stdout=True):
+        for key in file_pairs[dirname]:
+            pair = file_pairs[dirname][key]
+            if len(pair) < 2:
+                print(f"Cannot find pair for {key}. Skipping...")
+                continue
+            for img in pair["images"]:
+                apply_metadata(f"{dirname}/{img}", f"{dirname}/{pair['json']}")
+                imgs_modified += 1
+            os.remove(f"{dirname}/{pair['json']}")
     return imgs_modified
 
 

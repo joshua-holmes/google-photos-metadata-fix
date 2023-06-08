@@ -44,7 +44,7 @@ def format_path(path):
     return returned_path
 
 
-def set_attributes(args: List[str]) -> str:
+def get_args(args: List[str]) -> str:
     if len(args) < 2:
         print_utils.print_help_and_exit("Not enough arguments")
     elif len(args) > 3:
@@ -67,7 +67,7 @@ def set_attributes(args: List[str]) -> str:
     return path or "" # The LSP hates it when I don't include the 'or ""' bit
 
 def main():
-    path = set_attributes(sys.argv)
+    path = get_args(sys.argv)
 
     if type(lib.FIX_FILE_EXTENSIONS) is not bool:
         ask_if_fix_extensions()
