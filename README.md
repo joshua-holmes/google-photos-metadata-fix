@@ -28,30 +28,26 @@ This project was inspired by [MetadataFixer.com](https://metadatafixer.com/), wh
 
 To fix your metadata, follow these steps:
 
-1. Your Google Takeout export came in a .zip file. Unzip it in the directory of your choice. Your directory should look like this:
-```
-/path/to/my-chosen-directory/
-    file1.heic
-    file1.json
-    file2.jpg
-    file2.json
-    ...
-```
-Instead of `file1.heic`, etc., yours will probably be a very long name with numbers and letters. I just used the names above as an example.
-
-2. Clone this repo to your machine, then `cd` into it:
+1. Clone this repo to your machine, then `cd` into it:
 ```
 $ git clone https://github.com/joshua-holmes/google-photos-metadata-fix.git
 $ cd google-photos-metadata-fix
 ```
 If you don't have `git`, feel free to download this repo as a zip file using GitHub's green "Code" button above.
 
-3. Run `pip3 install requirements.txt`
-4. Run `python3 run.py /path/to/my-chosen-directory/`
+2. Run `pip3 install requirements.txt` to install Python dependencies for this project.
+3. Run `python3 run.py /path/to/my/directory/takeout.zip` where `takeout.zip` is the zip file that Google gives you when you download the export.
+4. You should now see a new `takeout/` directory right next to your `takeout.zip` file that you downloaded from Google.
+```
+/path/to/my/directory/
+    takeout/
+    takeout.zip
+```
+Feel free to delete the `takeout.zip` file to conserve space! All the photos from `takeout.zip` have already been extracted, had the metadata applied and saved in the new `takeout/` directory.
 
-That's it! The program will handle the rest.
+You can also extract the directory yourself and run the script on `/path/to/my/directory/takeout/`
 
-This program comes with more features! If you want to see them, run `python3 run.py --help`
+That's it!
 
 ## Made by
 Joshua Holmes<br/>
