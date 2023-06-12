@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "google-photos-metadata-fix"
+version = "0.1.0"
+description = ""
+authors = ["Joshua Holmes <joshua.phillip.holmes@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "google_photos_metadata_fix"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+exif = "*"
+filedate = "*"
+filetype = "*"
+Pillow = "*"
+pillow-heif = "*"
+progressbar2 = "*"
+pytest = "*"
+pytest-mock = "*"
+python-dateutil = "*"
+python-utils = "*"
+Unidecode = "*"
+whatimage = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
