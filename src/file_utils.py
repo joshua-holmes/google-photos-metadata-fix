@@ -46,8 +46,8 @@ def is_heic(img_path: str) -> bool:
 
 
 def convert_heic_to_jpg(img_path: str) -> str:
-    dir_name, prefix, ext = get_file_details(img_path)
-    jpg_path = f"{dir_name}{'/' if dir_name else ''}{prefix}.jpg"
+    dirname, prefix, ext = get_file_details(img_path)
+    jpg_path = f"{dirname}{'/' if dirname else ''}{prefix}.jpg"
 
     register_heif_opener()
     with ImagePIL.open(img_path) as f:
@@ -111,10 +111,10 @@ def get_file_paths(path: str) -> List[str]:
 
 
 def get_file_details(full_name: str) -> Tuple[str, str, str]:
-    dir_name = os.path.dirname(full_name)
+    dirname = os.path.dirname(full_name)
     basename = os.path.basename(full_name)
     prefix, ext = os.path.splitext(basename)
-    return (dir_name, prefix, ext)
+    return (dirname, prefix, ext)
 
 
 if __name__ == "__main__":
