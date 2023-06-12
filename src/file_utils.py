@@ -47,7 +47,7 @@ def is_heic(img_path: str) -> bool:
 
 def convert_heic_to_jpg(img_path: str) -> str:
     dir_name, prefix, ext = get_file_details(img_path)
-    jpg_path = f"{dir_name}/{prefix}.jpg"
+    jpg_path = f"{dir_name}{'/' if dir_name else ''}{prefix}.jpg"
 
     register_heif_opener()
     with ImagePIL.open(img_path) as f:
@@ -70,7 +70,7 @@ def fix_incorrect_extension(img_path) -> Optional[str]:
         ext = ".jpg"
 
     if img_fmt and ext[1:].lower() != img_fmt.lower():
-        new_img_path = dirname + "/" + prefix + "." + img_fmt.lower()
+        new_img_path = f"{dirname}{'/' if dirname else ''}{prefix}.{img_fmt.lower()}"
         os.rename(img_path, new_img_path)
         _, new_prefix, new_ext = get_file_details(new_img_path)
         _, old_prefix, old_ext = get_file_details(img_path)
@@ -101,7 +101,7 @@ def get_file_paths(path: str) -> List[str]:
         return __search_dir_for_files(path)
     elif zipfile.is_zipfile(path):
         dirname, prefix, _ = get_file_details(path)
-        extracted_path = f"{dirname}/{prefix}"
+        extracted_path = f"{dirname}{'/' if dirname else ''}{prefix}"
         print("Extracting...")
         with zipfile.ZipFile(path, "r") as zip_obj:
             zip_obj.extractall(extracted_path)

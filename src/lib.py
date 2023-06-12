@@ -65,7 +65,7 @@ def apply_image_fixes(file_pairs):
             if CONVERT_HEIC_TO_JPG or can_fix_extensions:
                 new_set = set()
                 for img_fname in pair.get("images", set()):
-                    img_path = f"{dirname}/{img_fname}"
+                    img_path = f"{dirname}{'/' if dirname else ''}{img_fname}"
                     new_img_path = None
                     can_convert = CONVERT_HEIC_TO_JPG and file_utils.is_heic(img_path)
                     if can_convert:
@@ -97,7 +97,8 @@ def process_files_in_dir(path: str) -> int:
             if len(pair) < 2:
                 continue
             for img in pair["images"]:
-                apply_metadata(f"{dirname}/{img}", f"{dirname}/{pair['json']}")
+                apply_metadata(f"{dirname}{'/' if dirname else ''}{img}",
+                               f"{dirname}{'/' if dirname else ''}{pair['json']}")
                 imgs_modified += 1
             os.remove(f"{dirname}/{pair['json']}")
     return imgs_modified
