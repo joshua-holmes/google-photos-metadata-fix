@@ -7,7 +7,7 @@ import tools_for_testing as tft
 
 sys.path.append("../")
 
-import lib
+from src import lib
 
 class TestApplyMetadata:
     @classmethod
@@ -43,8 +43,8 @@ class TestApplyMetadata:
 class TestApplyFileFixes:
     def test_file_renaming_in_group(self, mocker):
         lib.CONVERT_HEIC_TO_JPG = True
-        mocker.patch("file_utils.convert_heic_to_jpg", return_value="TEST_HEIC.jpg")
-        mocker.patch("file_utils.is_heic", return_value=True)
+        mocker.patch("src.file_utils.convert_heic_to_jpg", return_value="TEST_HEIC.jpg")
+        mocker.patch("src.file_utils.is_heic", return_value=True)
         file_structure = { "": { "TEST_HEIC": {
             "images": {"TEST_HEIC.HEIC"}
         }}}

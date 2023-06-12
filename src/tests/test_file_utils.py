@@ -1,9 +1,9 @@
 import sys, os, shutil, pathlib
 import tools_for_testing as tft
 sys.path.append("../")
-import file_utils
+from src import file_utils
 
-from tests.tools_for_testing import CUR_DIR
+from src.tests.tools_for_testing import CUR_DIR
 
 
 class TestConvertHeicToJpg:
