@@ -5,7 +5,7 @@ import filedate
 from progressbar import progressbar
 from exif import Image as ImageExif
 
-import file_utils
+from src import file_utils
 
 FIX_FILE_EXTENSIONS = None
 CONVERT_HEIC_TO_JPG = None
