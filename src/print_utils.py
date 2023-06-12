@@ -25,9 +25,6 @@ def print_success_message(imgs_modified: int):
     print("Success! Metadata applied! Nothing else needs to be done.")
     print(f"{imgs_modified} images written to")
     print()
-    print("Use the following example if you want to see the new metadata:")
-    print("$ python3 run.py --view <path>")
-    print()
 
 
 if __name__ == "__main__":
