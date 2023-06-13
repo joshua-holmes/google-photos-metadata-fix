@@ -22,6 +22,7 @@ This project was inspired by [MetadataFixer.com](https://metadatafixer.com/), wh
 
 * python3 (sometimes called python)
 * pip3 (sometimes called pip)
+* poetry (you can install this with `pip3 install poetry` after you install pip3)
 * git (optional)
 
 ## How to use it
@@ -35,7 +36,8 @@ $ cd google-photos-metadata-fix
 ```
 If you don't have `git`, feel free to download this repo as a zip file using GitHub's green "Code" button above.
 
-2. Run `pip3 install requirements.txt` to install Python dependencies for this project.
+2. (Optional) Run `poetry shell` to enter into a virtual environment. This just ensures your dependencies are installed in a known location in case you want to delete them after using this script. This "known location" will be listed in the terminal after you run this command.
+2. Run `poetry install` to install Python dependencies for this project.
 3. Run `python3 run.py /path/to/my/directory/takeout.zip` where `takeout.zip` is the zip file that Google gives you when you download the export.
 4. You should now see a new `takeout/` directory right next to your `takeout.zip` file that you downloaded from Google.
 ```
@@ -45,9 +47,20 @@ If you don't have `git`, feel free to download this repo as a zip file using Git
 ```
 Feel free to delete the `takeout.zip` file to conserve space! All the photos from `takeout.zip` have already been extracted, had the metadata applied and saved in the new `takeout/` directory.
 
-You can also extract the directory yourself and run the script on `/path/to/my/directory/takeout/`
+Alternatively, you can extract the directory yourself and run the script on `/path/to/my/directory/takeout/` if you prefer to run the script on an extracted directory instead of a zip file.
 
 That's it!
+
+## Development
+If you want to help make this project better, thank you! To utilize this repos testing environment:
+
+1. (Optional) Run `poetry config virtualenvs.in-project true` to set Poetry to install the dependencies here in the project's repo, instead of in `~/.cache` somewhere. Be aware that this is a global Poetry setting. Lookup the Poetry documentation for more options if you desire.
+
+2. Run `poetry install` to install dependencies
+
+3. Run `poetry run pytest` to run all tests. `poetry run pytest ./src` will run only unit tests. `poetry run pytest ./tests` will run only integration tests. All tests are saved in a `**/tests` directory.
+
+After you make changes in your own forked repo, feel free to make a pull request!
 
 ## Made by
 Joshua Holmes<br/>
