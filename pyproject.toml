@@ -22,6 +22,8 @@ python-utils = "*"
 Unidecode = "*"
 whatimage = "*"
 
+[tool.poetry.group.dev.dependencies]
+debugpy = "*"
 
 [build-system]
 requires = ["poetry-core"]
