@@ -36,10 +36,10 @@ $ cd google-photos-metadata-fix
 ```
 If you don't have `git`, feel free to download this repo as a zip file using GitHub's green "Code" button above.
 
-2. (Optional) Run `poetry shell` to enter into a virtual environment. This just ensures your dependencies are installed in a known location in case you want to delete them after using this script. This "known location" will be listed in the terminal after you run this command.
-2. Run `poetry install` to install Python dependencies for this project.
-3. Run `python3 run.py /path/to/my/directory/takeout.zip` where `takeout.zip` is the zip file that Google gives you when you download the export.
-4. You should now see a new `takeout/` directory right next to your `takeout.zip` file that you downloaded from Google.
+2. Run `python3 -m venv .venv && source ./.venv/bin/activate` to enter into a virtual environment. This just ensures your dependencies are installed in a known location in case you want to delete them after using this script. This "known location" will be listed in the terminal after you run this command.
+3. Run `poetry install` to install Python dependencies for this project.
+4. Run `python3 run.py /path/to/my/directory/takeout.zip` where `takeout.zip` is the zip file that Google gives you when you download the export.
+5. You should now see a new `takeout/` directory right next to your `takeout.zip` file that you downloaded from Google.
 ```
 /path/to/my/directory/
     takeout/
