@@ -1,5 +1,9 @@
 # Google Photos Metadata Fix
 
+## Announcement: GUI Version
+
+This project will eventually be deprecated and replaced with a GUI version called [Google Photos Takeout Util](https://github.com/joshua-holmes/google-photos-takeout-util). This project has been useful to a lot of people, but can be difficult to use if you're unfamiliar with Python environments (which are unnecessarily complicated). So keep an eye out for that!
+
 ## Disclaimers
 
 This project has no affiliation with Google and is not endorsed by them. This is my own personal project that I made to solve a problem I had with Google Photos.
