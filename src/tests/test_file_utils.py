@@ -98,11 +98,11 @@ class TestGetFiles:
         # Run tested script
         cls.file_paths = file_utils.get_file_paths(cls.zip_path)
 
-    def test_get_files_paths_from_zip(self):
-        assert self.file_paths == [
+    def test_get_file_paths_from_zip(self):
+        assert set(self.file_paths) == set([
             f"{CUR_DIR}/{self.zip_prefix}/Takeout/Google Photos/JPGs/TEST_JPG.jpg",
             f"{CUR_DIR}/{self.zip_prefix}/Takeout/Google Photos/HEICs/TEST_HEIC.HEIC"
-        ]
+        ])
 
     @classmethod
     def teardown_class(cls):

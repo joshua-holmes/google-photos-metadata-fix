@@ -20,7 +20,6 @@ pytest-mock = "*"
 python-dateutil = "*"
 python-utils = "*"
 Unidecode = "*"
-whatimage = "*"
 
 [tool.poetry.group.dev.dependencies]
 debugpy = "*"

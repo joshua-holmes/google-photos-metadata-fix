@@ -1,7 +1,7 @@
 import os, zipfile
 from typing import Optional, Tuple, List, Dict
 
-import whatimage
+import filetype
 from PIL import Image as ImagePIL
 from pillow_heif import register_heif_opener
 
@@ -40,9 +40,8 @@ def __search_dir_for_files(dirname: str) -> List[str]:
 
 
 def is_heic(img_path: str) -> bool:
-    with open(img_path, "rb") as f:
-        img_fmt = whatimage.identify_image(f.read())
-    return img_fmt == "heic"
+    kind = filetype.guess(img_path)
+    return bool(kind) and kind.mime == "image/heic"
 
 
 def convert_heic_to_jpg(img_path: str) -> str:
@@ -60,11 +59,12 @@ def convert_heic_to_jpg(img_path: str) -> str:
 
 
 def fix_incorrect_extension(img_path) -> Optional[str]:
-    with open(img_path, "rb") as f:
-        img_fmt = whatimage.identify_image(f.read())
+    kind = filetype.guess(img_path)
     dirname, prefix, ext = get_file_details(img_path)
 
-    if img_fmt and img_fmt.lower() == "jpeg":
+    img_fmt = kind.extension if kind else ""
+
+    if kind and kind.mime == "image/jpeg":
         img_fmt = "jpg"
     if ext == ".jpeg":
         ext = ".jpg"
